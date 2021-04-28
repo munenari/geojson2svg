@@ -82,31 +82,46 @@ func (svg *SVG) Draw(width, height float64, opts ...Option) string {
 }
 
 // AddGeometry adds a geojson geometry to the svg.
-func (svg *SVG) AddGeometry(gs string) error {
+func (svg *SVG) AddGeometryString(gs string) error {
 	g, err := geojson.UnmarshalGeometry([]byte(gs))
 	if err != nil {
 		return fmt.Errorf("invalid geometry: %s", gs)
 	}
+	return svg.AddGeometry(g)
+}
+
+// AddGeometry adds a geojson geometry to the svg.
+func (svg *SVG) AddGeometry(g *geojson.Geometry) error {
 	svg.geometries = append(svg.geometries, g)
 	return nil
 }
 
 // AddFeature adds a geojson feature to the svg.
-func (svg *SVG) AddFeature(fs string) error {
+func (svg *SVG) AddFeatureString(fs string) error {
 	f, err := geojson.UnmarshalFeature([]byte(fs))
 	if err != nil {
 		return fmt.Errorf("invalid feature: %s", fs)
 	}
+	return svg.AddFeature(f)
+}
+
+// AddFeature adds a geojson feature to the svg.
+func (svg *SVG) AddFeature(f *geojson.Feature) error {
 	svg.features = append(svg.features, f)
 	return nil
 }
 
 // AddFeatureCollection adds a geojson featurecollection to the svg.
-func (svg *SVG) AddFeatureCollection(fcs string) error {
+func (svg *SVG) AddFeatureCollectionString(fcs string) error {
 	fc, err := geojson.UnmarshalFeatureCollection([]byte(fcs))
 	if err != nil {
 		return fmt.Errorf("invalid feature collection: %s", fcs)
 	}
+	return svg.AddFeatureCollection(fc)
+}
+
+// AddFeatureCollection adds a geojson featurecollection to the svg.
+func (svg *SVG) AddFeatureCollection(fc *geojson.FeatureCollection) error {
 	svg.featureCollections = append(svg.featureCollections, fc)
 	return nil
 }

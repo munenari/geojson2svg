@@ -39,7 +39,7 @@ func withAPoint(t *testing.T) {
 	`)
 
 	svg := geojson2svg.New()
-	if err := svg.AddGeometry(`{"type": "Point", "coordinates": [10.5,20]}`); err != nil {
+	if err := svg.AddGeometryString(`{"type": "Point", "coordinates": [10.5,20]}`); err != nil {
 		t.Errorf("unexpected error %v", err)
 	}
 	got := svg.Draw(400, 400)
@@ -57,7 +57,7 @@ func withAMultiPoint(t *testing.T) {
 	`)
 
 	svg := geojson2svg.New()
-	if err := svg.AddGeometry(`{"type": "MultiPoint", "coordinates": [[10.5,20], [20.5,62]]}`); err != nil {
+	if err := svg.AddGeometryString(`{"type": "MultiPoint", "coordinates": [[10.5,20], [20.5,62]]}`); err != nil {
 		t.Errorf("unexpected error %v", err)
 	}
 	got := svg.Draw(400, 400)
@@ -74,7 +74,7 @@ func withALineString(t *testing.T) {
 	`)
 
 	svg := geojson2svg.New()
-	if err := svg.AddGeometry(`{"type": "LineString", "coordinates": [[10.4,20.5], [40.3,42.3]]}`); err != nil {
+	if err := svg.AddGeometryString(`{"type": "LineString", "coordinates": [[10.4,20.5], [40.3,42.3]]}`); err != nil {
 		t.Errorf("unexpected error %v", err)
 	}
 	got := svg.Draw(400, 400)
@@ -92,7 +92,7 @@ func withAMultiLineString(t *testing.T) {
 	`)
 
 	svg := geojson2svg.New()
-	if err := svg.AddGeometry(`{"type": "MultiLineString", "coordinates": [[[10.4,20.5], [40.3,42.3]], [[11.4,21.5], [41.3,41.3]]]}`); err != nil {
+	if err := svg.AddGeometryString(`{"type": "MultiLineString", "coordinates": [[[10.4,20.5], [40.3,42.3]], [[11.4,21.5], [41.3,41.3]]]}`); err != nil {
 		t.Errorf("unexpected error %v", err)
 	}
 	got := svg.Draw(400, 400)
@@ -109,7 +109,7 @@ func withAPolygonWithoutHoles(t *testing.T) {
 	`)
 
 	svg := geojson2svg.New()
-	if err := svg.AddGeometry(`{"type": "Polygon", "coordinates": [[[10.4,20.5], [40.3,42.3], [20.2, 10.2], [10.4,20.5]]]}`); err != nil {
+	if err := svg.AddGeometryString(`{"type": "Polygon", "coordinates": [[[10.4,20.5], [40.3,42.3], [20.2, 10.2], [10.4,20.5]]]}`); err != nil {
 		t.Errorf("unexpected error %v", err)
 	}
 	got := svg.Draw(400, 400)
@@ -126,7 +126,7 @@ func withAPolygonWithHoles(t *testing.T) {
 	`)
 
 	svg := geojson2svg.New()
-	err := svg.AddGeometry(`{"type": "Polygon", "coordinates": [
+	err := svg.AddGeometryString(`{"type": "Polygon", "coordinates": [
 		[[100.0,0.0], [101.0,0.0], [101.0,1.0], [100.0,1.0], [100.0,0.0]],
     [[100.2,0.2], [100.8,0.2], [100.8,0.8], [100.2,0.8], [100.2,0.2]]
 	]}`)
@@ -148,7 +148,7 @@ func withAMultiPolygon(t *testing.T) {
 	`)
 
 	svg := geojson2svg.New()
-	err := svg.AddGeometry(`{"type": "MultiPolygon", "coordinates": [
+	err := svg.AddGeometryString(`{"type": "MultiPolygon", "coordinates": [
 		[
 			[[10.4,20.5], [40.3,42.3], [20.2, 10.2], [10.4,20.5]]
 		], [
@@ -174,7 +174,7 @@ func withAGeometryCollection(t *testing.T) {
 	`)
 
 	svg := geojson2svg.New()
-	err := svg.AddGeometry(`{"type": "GeometryCollection", "geometries": [
+	err := svg.AddGeometryString(`{"type": "GeometryCollection", "geometries": [
 		{"type": "LineString", "coordinates": [[10.4,20.5], [40.3,42.3]]},
 		{"type": "Point", "coordinates": [10.5,20]}
 	]}`)
@@ -196,11 +196,11 @@ func withMultipleGeometries(t *testing.T) {
 	`)
 
 	svg := geojson2svg.New()
-	err := svg.AddGeometry(`{"type": "LineString", "coordinates": [[10.4,20.5], [40.3,42.3]]}`)
+	err := svg.AddGeometryString(`{"type": "LineString", "coordinates": [[10.4,20.5], [40.3,42.3]]}`)
 	if err != nil {
 		t.Errorf("unexpected error %v", err)
 	}
-	err = svg.AddGeometry(`{"type": "Point", "coordinates": [10.5,20]}`)
+	err = svg.AddGeometryString(`{"type": "Point", "coordinates": [10.5,20]}`)
 	if err != nil {
 		t.Errorf("unexpected error %v", err)
 	}
@@ -215,7 +215,7 @@ func withAnInvalidGeometry(t *testing.T) {
 	expected := "invalid geometry: " + geometry
 
 	svg := geojson2svg.New()
-	if err := svg.AddGeometry(geometry); err == nil || expected != err.Error() {
+	if err := svg.AddGeometryString(geometry); err == nil || expected != err.Error() {
 		t.Errorf("expected '%s', got %v", expected, err)
 	}
 	got := svg.Draw(400, 400)
@@ -232,7 +232,7 @@ func withAFeature(t *testing.T) {
 	`)
 
 	svg := geojson2svg.New()
-	err := svg.AddFeature(`{"type": "Feature", "geometry": {
+	err := svg.AddFeatureString(`{"type": "Feature", "geometry": {
 		"type": "Point",
 		"coordinates": [10.5,20]
 	}}`)
@@ -253,7 +253,7 @@ func withAnInvalidFeature(t *testing.T) {
 	expected := "invalid feature: " + feature
 
 	svg := geojson2svg.New()
-	if err := svg.AddFeature(feature); err == nil || err.Error() != expected {
+	if err := svg.AddFeatureString(feature); err == nil || err.Error() != expected {
 		t.Errorf("expected %s, got %v", expected, err)
 	}
 	got := svg.Draw(400, 400)
@@ -271,7 +271,7 @@ func withAFeatureCollection(t *testing.T) {
 	`)
 
 	svg := geojson2svg.New()
-	err := svg.AddFeatureCollection(`{"type": "FeatureCollection", "features": [
+	err := svg.AddFeatureCollectionString(`{"type": "FeatureCollection", "features": [
 		{"type": "Feature", "geometry": {
 			"type": "Point",
 			"coordinates": [10.5,20]
@@ -304,7 +304,7 @@ func withAnInvalidFeatureCollection(t *testing.T) {
 	expected := "invalid feature collection: " + featureCollection
 
 	svg := geojson2svg.New()
-	if err := svg.AddFeatureCollection(featureCollection); err == nil || err.Error() != expected {
+	if err := svg.AddFeatureCollectionString(featureCollection); err == nil || err.Error() != expected {
 		t.Errorf("expected %s, got %v", expected, err)
 	}
 	got := svg.Draw(400, 400)
@@ -434,7 +434,7 @@ func TestSVGPaddingOption(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(tt *testing.T) {
 			svg := geojson2svg.New()
-			err := svg.AddGeometry(fmt.Sprintf(`{"type": "LineString", "coordinates": %s}`, tc.data))
+			err := svg.AddGeometryString(fmt.Sprintf(`{"type": "LineString", "coordinates": %s}`, tc.data))
 			if err != nil {
 				t.Errorf("unexpected error %v", err)
 			}
@@ -533,7 +533,7 @@ func TestFeatureProperties(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(tt *testing.T) {
 			svg := geojson2svg.New()
-			err := svg.AddFeature(tc.feature)
+			err := svg.AddFeatureString(tc.feature)
 
 			if err != nil {
 				tt.Errorf("unexpected error %v", err)
@@ -566,7 +566,7 @@ func TestExample(t *testing.T) {
 	}
 
 	svg := geojson2svg.New()
-	err = svg.AddFeatureCollection(string(geojson))
+	err = svg.AddFeatureCollectionString(string(geojson))
 	if err != nil {
 		t.Fatalf("unexpected error %v", err)
 	}
