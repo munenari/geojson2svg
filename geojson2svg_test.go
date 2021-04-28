@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fapian/geojson2svg/pkg/geojson2svg"
+	"github.com/munenari/geojson2svg"
 )
 
 const wantEmptySVG = `<svg width="400.000000" height="400.000000"></svg>`
@@ -553,13 +553,13 @@ func TestFeatureProperties(t *testing.T) {
 }
 
 func TestExample(t *testing.T) {
-	exampleFile := path.Join("..", "..", "test", "example.json")
+	exampleFile := path.Join("test", "example.json")
 	geojson, err := ioutil.ReadFile(exampleFile)
 	if err != nil {
 		t.Fatalf("unexpected error %v", err)
 	}
 
-	svgFile := path.Join("..", "..", "test", "example.svg")
+	svgFile := path.Join("test", "example.svg")
 	want, err := ioutil.ReadFile(svgFile)
 	if err != nil {
 		t.Fatalf("unexpected error %v", err)

@@ -13,7 +13,8 @@ import (
 	"sort"
 	"strings"
 
-	geojson "github.com/paulmach/go.geojson"
+	"github.com/paulmach/orb"
+	"github.com/paulmach/orb/geojson"
 )
 
 // TODO release
@@ -63,7 +64,7 @@ func (svg *SVG) Draw(width, height float64, opts ...Option) string {
 
 	content := bytes.NewBufferString("")
 	for _, g := range svg.geometries {
-		process(sf, content, g, "")
+		process(sf, content, g.Geometry(), "")
 	}
 	for _, f := range svg.features {
 		as := makeAttributesFromProperties(svg.useProp, f.Properties)
@@ -150,12 +151,13 @@ func UseProperties(props []string) Option {
 	}
 }
 
-func (svg *SVG) points() [][]float64 {
-	ps := [][]float64{}
+func (svg *SVG) points() []orb.Point {
+	ps := make([]orb.Point, 0)
 	for _, g := range svg.geometries {
-		ps = append(ps, collect(g)...)
+		ps = append(ps, collect(g.Geometry())...)
 	}
 	for _, f := range svg.features {
+
 		ps = append(ps, collect(f.Geometry)...)
 	}
 	for _, fs := range svg.featureCollections {
@@ -166,69 +168,69 @@ func (svg *SVG) points() [][]float64 {
 	return ps
 }
 
-func process(sf scaleFunc, w io.Writer, g *geojson.Geometry, attributes string) {
-	switch {
-	case g.IsPoint():
-		drawPoint(sf, w, g.Point, attributes)
-	case g.IsMultiPoint():
-		drawMultiPoint(sf, w, g.MultiPoint, attributes)
-	case g.IsLineString():
-		drawLineString(sf, w, g.LineString, attributes)
-	case g.IsMultiLineString():
-		drawMultiLineString(sf, w, g.MultiLineString, attributes)
-	case g.IsPolygon():
-		drawPolygon(sf, w, g.Polygon, attributes)
-	case g.IsMultiPolygon():
-		drawMultiPolygon(sf, w, g.MultiPolygon, attributes)
-	case g.IsCollection():
-		for _, x := range g.Geometries {
+func process(sf scaleFunc, w io.Writer, g orb.Geometry, attributes string) {
+	switch a := g.(type) {
+	case orb.Point:
+		drawPoint(sf, w, a, attributes)
+	case orb.MultiPoint:
+		drawMultiPoint(sf, w, a, attributes)
+	case orb.LineString:
+		drawLineString(sf, w, a, attributes)
+	case orb.MultiLineString:
+		drawMultiLineString(sf, w, a, attributes)
+	case orb.Polygon:
+		drawPolygon(sf, w, a, attributes)
+	case orb.MultiPolygon:
+		drawMultiPolygon(sf, w, a, attributes)
+	case orb.Collection:
+		for _, x := range a {
 			process(sf, w, x, attributes)
 		}
 	}
 }
 
-func collect(g *geojson.Geometry) (ps [][]float64) {
-	switch {
-	case g.IsPoint():
-		ps = append(ps, g.Point)
-	case g.IsMultiPoint():
-		ps = append(ps, g.MultiPoint...)
-	case g.IsLineString():
-		ps = append(ps, g.LineString...)
-	case g.IsMultiLineString():
-		for _, x := range g.MultiLineString {
+func collect(g orb.Geometry) (ps []orb.Point) {
+	switch a := g.(type) {
+	case orb.Point:
+		ps = append(ps, a)
+	case orb.MultiPoint:
+		ps = append(ps, a...)
+	case orb.LineString:
+		ps = append(ps, a...)
+	case orb.MultiLineString:
+		for _, x := range a {
 			ps = append(ps, x...)
 		}
-	case g.IsPolygon():
-		for _, x := range g.Polygon {
+	case orb.Polygon:
+		for _, x := range a {
 			ps = append(ps, x...)
 		}
-	case g.IsMultiPolygon():
-		for _, xs := range g.MultiPolygon {
+	case orb.MultiPolygon:
+		for _, xs := range a {
 			for _, x := range xs {
 				ps = append(ps, x...)
 			}
 		}
-	case g.IsCollection():
-		for _, g := range g.Geometries {
+	case orb.Collection:
+		for _, g := range a {
 			ps = append(ps, collect(g)...)
 		}
 	}
 	return ps
 }
 
-func drawPoint(sf scaleFunc, w io.Writer, p []float64, attributes string) {
+func drawPoint(sf scaleFunc, w io.Writer, p orb.Point, attributes string) {
 	x, y := sf(p[0], p[1])
 	fmt.Fprintf(w, `<circle cx="%f" cy="%f" r="1"%s/>`, x, y, attributes)
 }
 
-func drawMultiPoint(sf scaleFunc, w io.Writer, ps [][]float64, attributes string) {
+func drawMultiPoint(sf scaleFunc, w io.Writer, ps orb.MultiPoint, attributes string) {
 	for _, p := range ps {
 		drawPoint(sf, w, p, attributes)
 	}
 }
 
-func drawLineString(sf scaleFunc, w io.Writer, ps [][]float64, attributes string) {
+func drawLineString(sf scaleFunc, w io.Writer, ps orb.LineString, attributes string) {
 	path := bytes.NewBufferString("M")
 	for _, p := range ps {
 		x, y := sf(p[0], p[1])
@@ -237,13 +239,13 @@ func drawLineString(sf scaleFunc, w io.Writer, ps [][]float64, attributes string
 	fmt.Fprintf(w, `<path d="%s"%s/>`, trim(path), attributes)
 }
 
-func drawMultiLineString(sf scaleFunc, w io.Writer, pps [][][]float64, attributes string) {
+func drawMultiLineString(sf scaleFunc, w io.Writer, pps orb.MultiLineString, attributes string) {
 	for _, ps := range pps {
 		drawLineString(sf, w, ps, attributes)
 	}
 }
 
-func drawPolygon(sf scaleFunc, w io.Writer, pps [][][]float64, attributes string) {
+func drawPolygon(sf scaleFunc, w io.Writer, pps orb.Polygon, attributes string) {
 	path := bytes.NewBufferString("")
 	for _, ps := range pps {
 		subPath := bytes.NewBufferString("M")
@@ -256,7 +258,7 @@ func drawPolygon(sf scaleFunc, w io.Writer, pps [][][]float64, attributes string
 	fmt.Fprintf(w, `<path d="%s Z"%s/>`, trim(path), attributes)
 }
 
-func drawMultiPolygon(sf scaleFunc, w io.Writer, ppps [][][][]float64, attributes string) {
+func drawMultiPolygon(sf scaleFunc, w io.Writer, ppps orb.MultiPolygon, attributes string) {
 	for _, pps := range ppps {
 		drawPolygon(sf, w, pps, attributes)
 	}
@@ -290,7 +292,7 @@ func makeAttributesFromProperties(useProp func(string) bool, props map[string]in
 	return makeAttributes(attrs)
 }
 
-func makeScaleFunc(width, height float64, padding Padding, ps [][]float64) scaleFunc {
+func makeScaleFunc(width, height float64, padding Padding, ps []orb.Point) scaleFunc {
 	w := width - padding.Left - padding.Right
 	h := width - padding.Top - padding.Bottom
 
